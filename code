@@ -1,0 +1,254 @@
+//KFDC(KARNATAKA FISHERIES DEVELOPMENT CORPORATION)management system
+#include<iostream>
+#include <fstream>
+using namespace std;
+class port//creating port class 
+{
+ protected: char p_name[30];
+ char pincode[20];
+ public:void getp()
+ {
+ cout<<"\nenter port name \n";
+ cin>>p_name;
+ cout<<"\nenter pincode\n";
+ cin>>pincode;
+ }
+};
+class f_man // creating fisher man class
+{
+protected : char boat_name[20];
+ char f_name[25]; 
+ char f_id[10];
+ char f_variety[10]; 
+ float quantity;
+public :
+ void getf() //function for reading fisher man details
+ {
+ cout<<"\nenter boat name of fisher man\n";
+ cin>>boat_name; 
+ cout<<"\nEnter the fisher man name\n";
+ cin>>f_name;
+ cout<<"\nEnter the id of fisher man start with F\n";
+ cin>>f_id;
+ cout<<"\nEnter the variety of fish to be sold\n";
+ cin>>f_variety;
+ cout<<"\nEnter the quantity of "<<f_variety<<" to be sold in quintals(1 
+quintal =100 kg)\n";
+ cin>>quantity;
+ }
+};
+class dealer // creating dealer class
+{
+protected : char d_name[25];
+ char d_id[10];
+public :
+ void getd() //function to read dealer details
+ {
+ cout<<"\nEnter the name\n";
+ cin>>d_name;
+ cout<<"\nEnter the id start with D\n";
+ cin>>d_id;
+ }
+};
+ // combining port class ,f_man class and dealer class using multiple inheritence 
+concept
+// the class kfdc which inherits the port class,f_man and dealer class 
+class kfdc: public port,public f_man,public dealer
+{
+ float fp,price,amount;
+ float max=0.00;
+ int n_round;
+ char date[10];
+public :
+ void getdatap()
+ {
+ getp();
+ }
+ void getdataf()
+ {
+ getf();
+ }
+ void getdatad()
+ {
+ getd();
+ }
+ void putdata(kfdc deal[],int n);
+ void auction(kfdc deal[],int n);
+ void rec(kfdc deal[],int n);
+};
+void kfdc :: auction(kfdc deal[],int n)
+{
+ cout<<"\n\n\n\nAuction starts :\n";
+ cout<<"\nEnter the date in DD/MM/YYYY format\n";
+ cin>>date;
+ cout<<"\nEnter the FP for the fish '"<<f_variety<<"' fixed by government per 
+kg\n";
+ cin>>fp;
+ cout<<"\nEnter the bidding price for the fish '"<<f_variety<<"' one by one\n";
+ cout<<"Bidding price should be always greater than or equal to FP fixed and 
+greater than any another dealer\n";
+ int round=1;
+ for(;;)
+ {
+ cout<<"\n\n\n\nRound "<<round<<" :\n";
+ for(int i=0;i<n;i++)
+ {
+ int ch;
+ cout<<"\n\nIf '"<<deal[i].d_name<<"' wants to bid for round-"<<round<<" enter 1
+else enter any\n";
+ cin>>ch;
+ if(ch==1)
+ {
+ cout<<"\ndealer '"<<deal[i].d_name<<"' bids for rupees\n";
+ cin>>deal[i].price;
+ if(deal[i].price<fp)
+ {
+ cout<<"\nInvalid\n";
+ }
+ if(deal[i].price>max)
+ max=deal[i].price;
+ }
+ }
+ ++round;
+ cout<<"\nIf any dealer wants to go for round-"<<round<<" enter 1 else enter 
+any\n";
+ cin>>n_round;
+ if(n_round!=1)
+ {
+ cout<<"\nAuction completed\n";
+ return;
+ }
+ }
+}
+void kfdc :: putdata(kfdc deal[],int n)
+{
+ for(int i=0;i<n;i++)
+ {
+ if(max==deal[i].price)
+ {
+ if(max<fp)
+ {
+ cout<<"Invalid - Deal is not performed\n";
+ return;
+ }
+ else
+ {
+ cout<<"\n\n\n\n\t\tThe deal is performed between the fisher man 
+"<<f_name<<" and the dealer "<<deal[i].d_name<<"'\n";
+ cout<<"\t\tDealer '"<<deal[i].d_name<<" buys the fish "<<f_variety<<" 
+for rupees "<<deal[i].price<<" per kg "<<"(FP was "<<fp<<" rupees)\n";
+ amount=(quantity*100*deal[i].price);
+ cout<<"\t\tSo he has to pay rupees "<<amount<<" for "<<quantity<<" 
+quintals of fish "<<f_variety<<"\n";
+ return;
+ }
+ }
+ }
+}
+void kfdc :: rec(kfdc deal[],int n)
+{
+ int ch;
+ cout<<"\n\n\n\nIf the deal is performed then to update the File enter 1 else 
+enter any\n";
+ cin>>ch;
+ if(ch!=1)
+ {
+ cout<<"File is not updated\n";
+ return;
+ }
+ ofstream auction("kfdc.txt",ios::out | ios::app);
+ if(!auction)
+ {
+ cout<<"Cannot open kfdc file.\n";
+ return;
+ }
+ auction<<"--------------------------------------\n";
+ auction<<"\n---------------------KARNATAKA FISHERIES DEVELOPMENT 
+CORPORATION--------------------\n\n";
+ auction<<"--------------------------------------\n";
+ auction<<"\n"<<date<<"\n";
+ auction<<"Port name\t"<<p_name<<"( pincode"<<pincode<<")"<<endl;
+ auction<<"Details of auction performed\n\n";
+ auction<<"boat name\t"<<boat_name<<endl;
+ auction<<"Fisher man name \n"<<f_name<<" (ID "<<f_id<<")\n";
+ auction<<"variety of fish \n"<<f_variety<<"\n";
+ auction<<"Quantity of the fish \n"<<quantity<<" quintals\n\n";
+ for(int i=0;i<n;i++)
+ auction<<"Dealer "<<(i+1)<<" name \n"<<deal[i].d_name<<" (ID 
+"<<deal[i].d_id<<")\n";
+ for(int i=0;i<n;i++)
+ {
+ if(max==deal[i].price)
+ {
+ auction<<"\nFP "<<fp<<" rupees\n";
+ auction<<"The deal is performed between fisher man '"<<f_name<<"' and 
+dealer '"<<deal[i].d_name<<"'\n";
+ auction<<"Dealer '"<<deal[i].d_name<<"' buys the product '"<<f_variety<<"'
+for rupees '"<<deal[i].price<<"' per kg\n";
+ auction<<"So he paid rupees '"<<amount<<"' for '"<<quantity<<"' quintals 
+of product '"<<f_variety<<"'\n";
+ auction<<"\n--------------------------------------\n";
+ }
+ }
+ cout<<"File is updated successfully\n\n";
+ auction.close();
+}
+int main()
+{
+ kfdc fish;
+ int i,n,ext;
+ cout<<"\n---------------------KARNATAKA FISHERIES DEVELOPMENT 
+CORPORATION--------------------\n\n";
+ 
+ for(;;)
+ { 
+ 
+ cout<<"\n\n-------------------------------------------\n";
+ cout<<"\nA New Deal Begins\n";
+ cout<<"\n-------------------------------------------\n";
+ cout<<"\nenter the port name with pincode \n";
+ fish.getdatap();
+ cout<<"\nEnter the fisher man details and his fish variety details\n\n";
+ fish.getdataf();
+ cout<<"\n\n\nEnter the no of dealers in the auction\n";
+ cin>>n;
+ kfdc deal[n];
+ cout<<"Enter the dealers' details\n\n";
+ for(i=0;i<n;i++)
+ {
+ cout<<"\nEnter the details of the dealer "<<(i+1)<<"\n";
+ deal[i].getdatad();
+ }
+ fish.auction(deal,n);
+ fish.putdata(deal,n);
+ fish.rec(deal,n);
+ int op;
+ cout<<"\n\nTo show records enter 1 else enter any\n";
+ cin>>op;
+ if(op==1)
+ {
+ ifstream in("kfdc.txt", ios::in);
+ if(!in)
+ {
+ cout<<"Cannot open kfdc file.\n";
+ return 0;
+ }
+ char ch;
+ in.seekg(0, ios::beg);
+ while(!in.eof())
+ {
+ in.get(ch);
+ if(!in.eof())
+ cout << ch;
+ }
+ }
+ cout<<"\n\n\n\nIf you want to go for a new auction enter 1 else to exit enter 
+any\n";
+ cin>>ext;
+ if(ext!=1)
+ {
+ printf("\nExiting\n");
+ return 0;
+ }
+ }
+}
